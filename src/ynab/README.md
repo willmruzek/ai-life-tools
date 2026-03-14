@@ -71,7 +71,7 @@ Requires Node.js >= 24.
 ### Categorize unapproved transactions
 
 ```sh
-pnpm categorize
+pnpm ynab categorize
 ```
 
 Fetches all unapproved transactions, categorizes them with AI, and patches YNAB in one request. Output saved to `output/ynab/categorize/categorizations-<timestamp>.json`.
@@ -79,7 +79,7 @@ Fetches all unapproved transactions, categorizes them with AI, and patches YNAB 
 ### Recommend category structure improvements
 
 ```sh
-pnpm recommend
+pnpm ynab recommend
 ```
 
 Analyzes the last 3 months of transactions and suggests changes to your category structure. Read-only — does not modify YNAB. Output saved to `output/ynab/recommend/recommendations-<timestamp>.json`.

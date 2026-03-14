@@ -8,6 +8,7 @@ Repository for personal-life automation scripts, organized by domain.
 src/
   env.ts
   ynab/
+    cli.ts
     categorize.ts
     recommend.ts
     README.md
@@ -48,14 +49,13 @@ Located in `src/email`.
 Run from the repository root:
 
 ```sh
-pnpm categorize
-pnpm recommend
+pnpm ynab categorize
+pnpm ynab recommend
 ```
 
 Defined in `package.json`:
 
-- `categorize`: `node src/ynab/categorize.ts`
-- `recommend`: `node src/ynab/recommend.ts`
+- `ynab`: `node src/ynab/cli.ts` (subcommands: `categorize`, `recommend`)
 
 ### Script outputs
 
@@ -82,7 +82,7 @@ Defined in `package.json`:
   - run `direnv allow`
 - Use `dotenvx` if you prefer `.env` files and explicit command wrapping:
   - store values in `.env`
-  - run commands like `dotenvx run -- pnpm categorize`
+  - run commands like `dotenvx run -- pnpm ynab categorize`
 - Use `dotenv` if you want lightweight `.env` loading in Node:
   - store values in `.env`
   - install it: `pnpm add dotenv`
