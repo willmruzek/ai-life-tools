@@ -7,8 +7,6 @@ import { catSchema } from '../agentConfig.ts';
 import { CatListingEmail } from '../email/CatListingEmail.tsx';
 import { requireBearerAuth } from '../auth.ts';
 
-export const config = { maxDuration: 60 };
-
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });

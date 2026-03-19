@@ -1,9 +1,9 @@
 {
-  "outputDirectory": "public",
+  "buildCommand": "node scripts/build.ts",
   "crons": [
     {
       "path": "/api/createJob",
-      "schedule": "0 4 * * *"
+      "schedule": "0 11,18 * * *"
     },
     {
       "path": "/api/checkJobs",

@@ -3,8 +3,6 @@ import { firecrawl } from '../firecrawlClient.ts';
 import { db, type Job } from '../db.ts';
 import { requireBearerAuth } from '../auth.ts';
 
-export const config = { maxDuration: 60 };
-
 type ProcessResult =
   | { ok: true; updatedJobs: Job[]; updated: number; failed: number }
   | { ok: false; error: string };

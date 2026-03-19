@@ -3,8 +3,6 @@ import { firecrawl } from '../firecrawlClient.ts';
 import { db } from '../db.ts';
 import { requireBearerAuth } from '../auth.ts';
 
-export const config = { maxDuration: 30 };
-
 async function createJob(): Promise<Response> {
   const agentResult = await firecrawl.startAgent({
     prompt: agentPrompt,
