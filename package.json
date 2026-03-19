@@ -1,35 +1,20 @@
 {
-  "name": "ynab",
+  "name": "ai-tools-for-life",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "ynab": "node src/ynab/cli.ts",
-    "lint": "eslint",
-    "tsc": "tsc"
+    "lint": "pnpm -r lint",
+    "tsc": "pnpm -r tsc",
+    "test": "pnpm -r test"
   },
   "engines": {
     "node": ">=24"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
-  "dependencies": {
-    "@ai-sdk/openai": "^3.0.39",
-    "@t3-oss/env-core": "^0.13.10",
-    "ai": "^6.0.108",
-    "csv-parse": "^6.1.0",
-    "gpt-tokenizer": "^3.4.0",
-    "typescript": "^5.9.3",
-    "ynab": "^3.1.0",
-    "zod": "^4.3.6"
-  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@tsconfig/bases": "^1.0.23",
-    "@types/node": "^25.5.0",
     "eslint": "^10.0.3",
     "globals": "^17.4.0",
     "jiti": "^2.6.1",

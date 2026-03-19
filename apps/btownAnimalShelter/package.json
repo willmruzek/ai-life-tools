@@ -1,0 +1,32 @@
+{
+  "name": "btown-animal-shelter",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "rm -rf api && cp -r src/api api",
+    "tsc": "tsc",
+    "lint": "echo 'no lint configured'",
+    "test": "echo 'no tests configured'"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
+  "dependencies": {
+    "@mendable/firecrawl-js": "^4.16.0",
+    "@react-email/components": "^1.0.10",
+    "@t3-oss/env-core": "^0.13.10",
+    "@vercel/blob": "^2.3.1",
+    "@vercel/node": "^5.6.16",
+    "dedent": "^1.7.2",
+    "postmark": "^4.0.7",
+    "react": "^19.2.4",
+    "typescript": "^5.9.3",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@tsconfig/bases": "^1.0.23",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14"
+  }
+}
