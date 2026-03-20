@@ -72,7 +72,7 @@ async function buildFunction(file: string): Promise<void> {
   await bundle.close();
 
   await fs.writeJson(path.join(funcDir, '.vc-config.json'), {
-    runtime: 'nodejs22.x',
+    runtime: 'nodejs24.x',
     handler: 'index.mjs',
     shouldAddHelpers: true,
     maxDuration: maxDurations[name] ?? 30,

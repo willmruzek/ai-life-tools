@@ -4,20 +4,32 @@ import { db } from '../db.ts';
 import { requireBearerAuth } from '../auth.ts';
 
 async function createJob(): Promise<Response> {
+  console.log('[createJob] starting firecrawl agent');
+  const t0 = Date.now();
   const agentResult = await firecrawl.startAgent({
     prompt: agentPrompt,
     schema: catSchema,
     model: 'spark-1-mini',
   });
+  console.log(`[createJob] startAgent finished in ${Date.now() - t0}ms`);
 
   if (!agentResult.success) {
+    console.error('[createJob] startAgent failed:', agentResult.error);
     return Response.json(
       { error: `Failed to start agent: ${agentResult.error}` },
       { status: 500 },
     );
   }
 
+  console.log('[createJob] fetching existing jobs from blob');
+  const t1 = Date.now();
   const jobs = await db.getJobs();
+  console.log(
+    `[createJob] getJobs finished in ${Date.now() - t1}ms, found ${jobs.length} jobs`,
+  );
+
+  console.log('[createJob] saving jobs to blob');
+  const t2 = Date.now();
   await db.saveJobs([
     ...jobs,
     {
@@ -26,6 +38,7 @@ async function createJob(): Promise<Response> {
       status: 'pending',
     },
   ]);
+  console.log(`[createJob] saveJobs finished in ${Date.now() - t2}ms`);
 
   return Response.json({ jobId: agentResult.id });
 }
