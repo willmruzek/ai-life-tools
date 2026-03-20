@@ -74,6 +74,7 @@ async function buildFunction(file: string): Promise<void> {
   await fs.writeJson(path.join(funcDir, '.vc-config.json'), {
     runtime: 'nodejs24.x',
     handler: 'index.mjs',
+    launcherType: 'Nodejs',
     shouldAddHelpers: true,
     maxDuration: maxDurations[name] ?? 30,
   });

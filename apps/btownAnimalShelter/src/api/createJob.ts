@@ -1,9 +1,10 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { agentPrompt, catSchema } from '../agentConfig.ts';
 import { firecrawl } from '../firecrawlClient.ts';
 import { db } from '../db.ts';
 import { requireBearerAuth } from '../auth.ts';
 
-async function createJob(): Promise<Response> {
+async function createJob(res: VercelResponse): Promise<void> {
   console.log('[createJob] starting firecrawl agent');
   const t0 = Date.now();
   const agentResult = await firecrawl.startAgent({
@@ -15,10 +16,8 @@ async function createJob(): Promise<Response> {
 
   if (!agentResult.success) {
     console.error('[createJob] startAgent failed:', agentResult.error);
-    return Response.json(
-      { error: `Failed to start agent: ${agentResult.error}` },
-      { status: 500 },
-    );
+    res.status(500).json({ error: `Failed to start agent: ${agentResult.error}` });
+    return;
   }
 
   console.log('[createJob] fetching existing jobs from blob');
@@ -40,14 +39,16 @@ async function createJob(): Promise<Response> {
   ]);
   console.log(`[createJob] saveJobs finished in ${Date.now() - t2}ms`);
 
-  return Response.json({ jobId: agentResult.id });
+  res.status(200).json({ jobId: agentResult.id });
 }
 
 // Triggered by Vercel cron or manually (GET with Authorization: Bearer CRON_SECRET)
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const auth = requireBearerAuth(req);
+  if (!auth.ok) {
+    res.status(auth.statusCode).send(auth.message);
+    return;
+  }
 
-  if (!auth.ok) return auth.response;
-
-  return createJob();
+  await createJob(res);
 }

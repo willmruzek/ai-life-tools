@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { render } from '@react-email/components';
 import { ServerClient as PostmarkServerClient } from 'postmark';
 import { env } from '../env.ts';
@@ -7,43 +8,42 @@ import { catSchema } from '../agentConfig.ts';
 import { CatListingEmail } from '../email/CatListingEmail.tsx';
 import { requireBearerAuth } from '../auth.ts';
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    res.status(405).send('Method Not Allowed');
+    return;
   }
 
   const auth = requireBearerAuth(req);
-  if (!auth.ok) return auth.response;
+  if (!auth.ok) {
+    res.status(auth.statusCode).send(auth.message);
+    return;
+  }
 
-  const body = (await req.json()) as unknown;
+  const body = req.body as unknown;
+
   if (
     typeof body !== 'object' ||
     body === null ||
     !('jobId' in body) ||
     typeof body.jobId !== 'string'
   ) {
-    return Response.json(
-      { error: 'Missing jobId in request body' },
-      { status: 400 },
-    );
+    res.status(400).json({ error: 'Missing jobId in request body' });
+    return;
   }
 
   const { jobId } = body;
 
   const jobs = await db.getJobs();
   if (!jobs.some((j) => j.id === jobId && j.status === 'readyToEmail')) {
-    return Response.json(
-      { error: `No readyToEmail job found with ID ${jobId}` },
-      { status: 404 },
-    );
+    res.status(404).json({ error: `No readyToEmail job found with ID ${jobId}` });
+    return;
   }
 
   const agentStatus = await firecrawl.getAgentStatus(jobId);
   if (agentStatus.status !== 'completed' || agentStatus.data === undefined) {
-    return Response.json(
-      { error: 'Agent data not available' },
-      { status: 422 },
-    );
+    res.status(422).json({ error: 'Agent data not available' });
+    return;
   }
 
   const catData = catSchema.parse(agentStatus.data);
@@ -64,5 +64,5 @@ export default async function handler(req: Request): Promise<Response> {
     ),
   );
 
-  return Response.json({ sent: true });
+  res.status(200).json({ sent: true });
 }

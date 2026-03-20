@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { env } from '../env.ts';
 import { firecrawl } from '../firecrawlClient.ts';
 import { db, type Job } from '../db.ts';
@@ -49,24 +50,38 @@ async function processPendingJobs(
   }
 }
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse,
+): Promise<void> {
   const auth = requireBearerAuth(req);
-  if (!auth.ok) return auth.response;
+  if (!auth.ok) {
+    res.status(auth.statusCode).send(auth.message);
+    return;
+  }
+
+  const proto = Array.isArray(req.headers['x-forwarded-proto'])
+    ? req.headers['x-forwarded-proto'][0]
+    : (req.headers['x-forwarded-proto'] ?? 'https');
+  const host = req.headers['host'] ?? 'localhost';
+  const baseUrl = `${proto}://${host}`;
 
   const jobs = await db.getJobs();
   const pendingJobs = jobs.filter((j) => j.status === 'pending');
 
   if (pendingJobs.length === 0) {
-    return Response.json({ processed: 0 });
+    res.status(200).json({ processed: 0 });
+    return;
   }
 
-  const result = await processPendingJobs(jobs, new URL(req.url).origin);
+  const result = await processPendingJobs(jobs, baseUrl);
   if (!result.ok) {
-    return Response.json({ error: result.error }, { status: 500 });
+    res.status(500).json({ error: result.error });
+    return;
   }
   await db.saveJobs(result.updatedJobs);
 
-  return Response.json({
+  res.status(200).json({
     processed: pendingJobs.length,
     updated: result.updated,
     failed: result.failed,
