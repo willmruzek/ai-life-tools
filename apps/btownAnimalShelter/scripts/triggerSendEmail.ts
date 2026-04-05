@@ -13,13 +13,9 @@ const env = createEnv({
 });
 
 const jobId = process.argv[2];
-if (!jobId) {
-  console.error('Usage: pnpm trigger:sendEmail <jobId>');
-  process.exit(1);
-}
 
 const endpoint = `https://${env.VERCEL_URL}/api/sendEmail`;
-console.log(`POST ${endpoint} (jobId: ${jobId})`);
+console.log(jobId ? `POST ${endpoint} (jobId: ${jobId})` : `POST ${endpoint}`);
 
 const res = await fetch(endpoint, {
   method: 'POST',
@@ -27,7 +23,7 @@ const res = await fetch(endpoint, {
     Authorization: `Bearer ${env.CRON_SECRET}`,
     'Content-Type': 'application/json',
   },
-  body: JSON.stringify({ jobId }),
+  body: JSON.stringify(jobId ? { jobId } : {}),
 });
 
 const text = await res.text();

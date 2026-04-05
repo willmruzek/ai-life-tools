@@ -8,10 +8,7 @@ type ProcessResult =
   | { ok: true; updatedJobs: Job[]; updated: number; failed: number }
   | { ok: false; error: string };
 
-async function processPendingJobs(
-  jobs: Job[],
-  baseUrl: string,
-): Promise<ProcessResult> {
+async function processPendingJobs(jobs: Job[]): Promise<ProcessResult> {
   let updated = 0;
   let failed = 0;
   try {
@@ -28,23 +25,6 @@ async function processPendingJobs(
 
         if (status.status === 'completed') {
           updated++;
-          console.log(`[checkJobs] job ${job.id} completed, calling sendEmail`);
-          const t1 = Date.now();
-          const emailRes = await fetch(`${baseUrl}/api/sendEmail`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${env.CRON_SECRET}`,
-            },
-            body: JSON.stringify({ jobId: job.id }),
-          });
-          console.log(
-            `[checkJobs] sendEmail responded ${emailRes.status} in ${Date.now() - t1}ms`,
-          );
-          if (!emailRes.ok) {
-            const body = await emailRes.text();
-            console.error(`[checkJobs] sendEmail error body: ${body}`);
-          }
           return { ...job, status: 'readyToEmail' as const };
         } else if (status.status === 'failed') {
           failed++;
@@ -67,6 +47,58 @@ async function processPendingJobs(
   }
 }
 
+async function sendReadyEmails(jobs: Job[], baseUrl: string): Promise<number> {
+  const readyJobs = jobs.filter((job) => job.status === 'readyToEmail');
+
+  if (readyJobs.length === 0) {
+    return 0;
+  }
+
+  console.log(
+    `[checkJobs] notifying sendEmail to drain ${readyJobs.length} ready job(s)`,
+  );
+
+  const t0 = Date.now();
+  const emailRes = await fetch(`${baseUrl}/api/sendEmail`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${env.CRON_SECRET}`,
+    },
+    body: JSON.stringify({}),
+  });
+
+  const text = await emailRes.text();
+  let payload: unknown;
+  try {
+    payload = JSON.parse(text) as unknown;
+  } catch {
+    payload = text;
+  }
+
+  console.log(
+    `[checkJobs] sendEmail responded ${emailRes.status} in ${Date.now() - t0}ms`,
+    payload,
+  );
+
+  if (!emailRes.ok) {
+    throw new Error(
+      `sendEmail failed with ${emailRes.status}: ${typeof payload === 'string' ? payload : JSON.stringify(payload)}`,
+    );
+  }
+
+  if (
+    typeof payload === 'object' &&
+    payload !== null &&
+    'sent' in payload &&
+    typeof payload.sent === 'number'
+  ) {
+    return payload.sent;
+  }
+
+  return 0;
+}
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
@@ -87,16 +119,17 @@ export default async function handler(
   const t0 = Date.now();
   const jobs = await db.getJobs();
   const pendingJobs = jobs.filter((j) => j.status === 'pending');
+  const readyToEmailJobs = jobs.filter((j) => j.status === 'readyToEmail');
   console.log(
-    `[checkJobs] found ${jobs.length} total jobs, ${pendingJobs.length} pending (${Date.now() - t0}ms)`,
+    `[checkJobs] found ${jobs.length} total jobs, ${pendingJobs.length} pending, ${readyToEmailJobs.length} readyToEmail (${Date.now() - t0}ms)`,
   );
 
-  if (pendingJobs.length === 0) {
-    res.status(200).json({ processed: 0 });
+  if (pendingJobs.length === 0 && readyToEmailJobs.length === 0) {
+    res.status(200).json({ processed: 0, emailed: 0 });
     return;
   }
 
-  const result = await processPendingJobs(jobs, baseUrl);
+  const result = await processPendingJobs(jobs);
   if (!result.ok) {
     console.error('[checkJobs] processing failed:', result.error);
     res.status(500).json({ error: result.error });
@@ -107,9 +140,12 @@ export default async function handler(
   );
   await db.saveJobs(result.updatedJobs);
 
+  const emailed = await sendReadyEmails(result.updatedJobs, baseUrl);
+
   res.status(200).json({
     processed: pendingJobs.length,
     updated: result.updated,
     failed: result.failed,
+    emailed,
   });
 }
