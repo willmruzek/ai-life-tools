@@ -1,107 +1,77 @@
 # AI Tools for Life
 
-Repository for personal-life automation scripts, organized by domain.
+Monorepo for small, personal AI-powered tools and automations.
 
-## Structure
+## Apps
 
-```text
-src/
-  env.ts
-  ynab/
-    cli.ts
-    categorize.ts
-    recommend.ts
-    README.md
-  email/
-    .gitkeep
-input/
-output/
-  <group>/
-    <script>/
-      <script-output>-<timestamp>.json
-```
+### YNAB
 
-## Available tools
+Located in `apps/ynab`.
 
-### YNAB tools
-
-Located in `src/ynab`.
-
-- `categorize.ts`
-  - Categorizes unapproved YNAB transactions with AI.
-  - Writes output to `output/ynab/categorize/categorizations-<timestamp>.json`.
-  - Updates transaction categories in YNAB.
-- `recommend.ts`
-  - Reviews recent YNAB transactions and recommends category-structure improvements.
-  - Writes output to `output/ynab/recommend/recommendations-<timestamp>.json`.
+- `categorize`
+  - Fetches unapproved transactions from active checking, savings, cash, and credit-card accounts.
+  - Uses OpenAI plus the current YNAB category list to categorize transactions.
+  - Optionally uses Amazon order history from `apps/ynab/input/AmazonOrderHistory.csv` for better Amazon matches.
+  - Writes results to `apps/ynab/output/categorize/categorizations-<timestamp>.json`.
+  - Applies successful AI category assignments back to YNAB.
+- `recommend`
+  - Reviews the last 3 months of transactions and suggests category-structure changes.
+  - Writes results to `apps/ynab/output/recommend/recommendations-<timestamp>.json`.
   - Read-only with respect to YNAB data.
 
-See the full YNAB documentation in `src/ynab/README.md`.
+See `apps/ynab/src/README.md` for detailed setup and usage.
 
-### Email tools
+### Bloomington Animal Shelter
 
-Located in `src/email`.
+Located in `apps/btownAnimalShelter`.
 
-- No scripts yet (placeholder folder only).
+- Starts Firecrawl agent jobs to scrape Bloomington Animal Shelter cat listings.
+- Extracts structured cat profile data, profile URLs, and image URLs.
+- Tracks scrape job state, polls for completed jobs, and sends the final cat digest email through Postmark.
+- Contains scripts for `createJob`, `checkJobs`, and `sendEmail` so the flow can be run manually outside cron.
 
-## Scripts
+### Organize Email
 
-Run from the repository root:
+Located in `apps/organizeEmail`.
+
+- Coming soon.
+- Reserved for email organization and cleanup workflows.
+
+## Commands
+
+From the repository root:
+
+```sh
+pnpm install
+pnpm lint
+pnpm tsc
+pnpm test
+```
+
+YNAB commands from the repository root:
+
+```sh
+pnpm --filter ynab ynab categorize
+pnpm --filter ynab ynab recommend
+```
+
+YNAB commands from `apps/ynab`:
 
 ```sh
 pnpm ynab categorize
 pnpm ynab recommend
 ```
 
-Defined in `package.json`:
+Bloomington Animal Shelter commands from the repository root:
 
-- `ynab`: `node src/ynab/cli.ts` (subcommands: `categorize`, `recommend`)
-
-### Script outputs
-
-- `categorize`: `output/ynab/categorize/categorizations-<timestamp>.json`
-- `recommend`: `output/ynab/recommend/recommendations-<timestamp>.json`
-
-## Setup
-
-1. Install dependencies:
-
-   ```sh
-   pnpm install
-   ```
-
-2. Configure environment variables (for YNAB scripts):
-   - `OPENAI_API_KEY`
-   - `ACCESS_TOKEN`
-   - `PLAN_ID`
-
-### Environment loading
-
-- Use `direnv` if you want automatic per-directory env loading:
-  - put exports in `.envrc`
-  - run `direnv allow`
-- Use `dotenvx` if you prefer `.env` files and explicit command wrapping:
-  - store values in `.env`
-  - run commands like `dotenvx run -- pnpm ynab categorize`
-- Use `dotenv` if you want lightweight `.env` loading in Node:
-  - store values in `.env`
-  - install it: `pnpm add dotenv`
-  - run commands like `node -r dotenv/config src/ynab/categorize.ts`
-  - or import once at startup in script code: `import 'dotenv/config'`
-- Use Node's built-in env-file support if you don't want extra dependencies:
-  - store values in `.env`
-  - run commands like `node --env-file=.env src/ynab/categorize.ts`
-
-### Shared config
-
-Domain scripts should import environment configuration from `src/env.ts`.
-
-## Output convention
-
-Each script writes to a canonical output file path:
-
-```text
-output/<group>/<script>/<script-output>-<timestamp>.json
+```sh
+pnpm --filter btown-animal-shelter build
+pnpm --filter btown-animal-shelter trigger:createJob
+pnpm --filter btown-animal-shelter trigger:checkJobs
+pnpm --filter btown-animal-shelter trigger:sendEmail
 ```
 
-This keeps outputs consistent as more domains and scripts are added.
+## Requirements
+
+- Node.js >= 24
+- pnpm workspace support

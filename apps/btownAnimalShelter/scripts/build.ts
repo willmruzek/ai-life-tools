@@ -1,8 +1,8 @@
 // Vercel Build Output API v3
 // https://vercel.com/docs/build-output-api/v3/primitives#serverless-functions
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import * as path from 'node:path';
+import * as url from 'node:url';
 
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -13,7 +13,7 @@ import fs from 'fs-extra';
 import { rollup } from 'rollup';
 import swc from 'rollup-plugin-swc3';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 
 const API_DIR = path.join(root, 'src', 'api');

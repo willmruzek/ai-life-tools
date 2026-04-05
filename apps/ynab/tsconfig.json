@@ -9,11 +9,6 @@
   "compilerOptions": {
     "noEmit": true,
 
-    "types": ["node"],
-
-    "jsx": "react-jsx",
-
-    "allowImportingTsExtensions": true,
-    "noUncheckedSideEffectImports": true
+    "types": ["node"]
   }
 }
